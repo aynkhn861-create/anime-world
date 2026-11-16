@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime World</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#090914;color:white;
+ font-family:Arial,sans-serif
+}
+header{
+ background:#17132b;padding:22px;text-align:center;
+ border-bottom:2px solid #a855f7
+}
+header h1{color:#c084fc;font-size:32px}
+.hero{
+ text-align:center;padding:35px 15px;
+ background:linear-gradient(120deg,#35105d,#11112c,#651044)
+}
+.search{
+ display:block;width:90%;max-width:500px;
+ margin:20px auto;padding:14px;border-radius:25px;
+ background:#202035;color:white;border:2px solid #a855f7;
+ font-size:16px
+}
+h2{color:#c084fc;margin:20px}
+.grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
+ gap:15px;padding:15px
+}
+.card{
+ background:#1c1c2c;border-radius:12px;
+ overflow:hidden;border:1px solid #39304d;
+ transition:.2s
+}
+.card:hover{transform:scale(1.03)}
+.card img{width:100%;height:205px;object-fit:cover}
+.card h3{font-size:14px;padding:0 10px}
+.card p{color:#aaa;padding:0 10px;font-size:12px}
+footer{text-align:center;padding:25px;background:#17132b}
+</style>
+</head>
+
+<body>
+<header>
+<h1>⚡ ANIME WORLD ⚡</h1>
+<p>Unlimited Anime Collection</p>
+</header>
+
+<div class="hero">
+<h2>Welcome Anime Lovers!</h2>
+<p>Explore 60+ Amazing Anime</p>
+</div>
+
+<input id="search" class="search"
+placeholder="🔍 Search Anime...">
+
+<h2>🔥 All Anime</h2>
+<div class="grid" id="anime"></div>
+
+<footer>
+<h2>ANIME WORLD</h2>
+<p>Made for Anime Fans ❤️</p>
+</footer>
+
+<script>
+const names = [
+"Naruto","Naruto Shippuden","One Piece","Dragon Ball",
+"Dragon Ball Z","Dragon Ball Super","Dragon Ball GT",
+"Bleach","Death Note","Demon Slayer","Jujutsu Kaisen",
+"Attack on Titan","My Hero Academia","Black Clover",
+"Chainsaw Man","Spy x Family","Tokyo Revengers",
+"Haikyuu","Blue Lock","Solo Leveling",
+"Fullmetal Alchemist","Hunter x Hunter","One Punch Man",
+"Mob Psycho 100","Dr Stone","Fire Force",
+"Fairy Tail","Sword Art Online","Tokyo Ghoul",
+"Vinland Saga","Code Geass","Steins Gate",
+"Your Name","Weathering With You","Suzume",
+"Your Lie in April","Horimiya","Kaguya Sama",
+"Re Zero","Overlord","Konosuba","Berserk",
+"JoJo's Bizarre Adventure","The Promised Neverland",
+"Classroom of the Elite","Food Wars","Assassination Classroom",
+"Black Lagoon","Hellsing","Dandadan",
+"Frieren","Mashle","Kaiju No 8","Bungo Stray Dogs",
+"Parasyte","Erased","Drifters","Great Teacher Onizuka",
+"Made in Abyss","The Seven Deadly Sins"
+];
+
+const container = document.getElementById("anime");
+
+names.forEach((name,index)=>{
+ const card = document.createElement("div");
+ card.className = "card";
+
+ const img = document.createElement("img");
+
+ img.src =
+ "https://tse2.mm.bing.net/th?q=" +
+ encodeURIComponent(name+" anime poster") +
+ "&w=300&h=420&c=7&rs=1&p=0";
+
+ img.alt = name;
+ img.loading = "lazy";
+
+ const title = document.createElement("h3");
+ title.textContent = name;
+
+ const number = document.createElement("p");
+ number.textContent = "Anime Collection #" + (index+1);
+
+ card.appendChild(img);
+ card.appendChild(title);
+ card.appendChild(number);
+ container.appendChild(card);
+});
+
+document.getElementById("search").addEventListener("input",function(){
+ const value = this.value.toLowerCase();
+
+ document.querySelectorAll(".card").forEach(card=>{
+  card.style.display =
+   card.querySelector("h3").textContent.toLowerCase()
+   .includes(value) ? "" : "none";
+ });
+});
+</script>
+</body>
+</html>
