@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime World</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#080d19;color:white;
+ font-family:Arial,sans-serif
+}
+header{
+ background:#151e32;text-align:center;
+ padding:25px;border-bottom:3px solid orange
+}
+h1{color:orange;font-size:38px;margin:5px}
+.search{
+ display:block;width:90%;max-width:500px;
+ padding:14px;margin:22px auto;
+ border-radius:10px;border:2px solid orange;
+ font-size:16px
+}
+h2{text-align:center;color:orange}
+#status{text-align:center;color:#ccc}
+#animeList{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+ gap:18px;padding:20px
+}
+.card{
+ background:#19253d;border-radius:12px;
+ text-align:center;padding:12px;
+ overflow:hidden
+}
+.poster{
+ width:100%;height:235px;
+ background:#303e5b;border-radius:8px;
+ position:relative;overflow:hidden;
+ display:flex;align-items:center;
+ justify-content:center;font-size:50px
+}
+.poster img{
+ position:absolute;width:100%;height:100%;
+ object-fit:cover
+}
+.card h3{color:orange;min-height:38px}
+select,button{
+ padding:11px;border:0;border-radius:7px;
+ margin:6px;max-width:95%
+}
+button{
+ background:#ed651b;color:white;
+ cursor:pointer;font-weight:bold
+}
+button:hover{background:orange}
+#player{
+ display:none;background:#172139;
+ padding:20px;margin:15px;
+ text-align:center;border-radius:12px
+}
+iframe{
+ width:100%;max-width:800px;
+ aspect-ratio:16/9;border:0
+}
+#episodes{
+ display:flex;flex-wrap:wrap;
+ justify-content:center
+}
+footer{text-align:center;padding:25px;color:#aaa}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🔥 ANIME WORLD 🔥</h1>
+<p>30 Anime | Posters | Seasons | Episodes</p>
+</header>
+
+<input class="search" id="search"
+placeholder="🔍 Search Anime...">
+
+<h2>🎬 ALL ANIME COLLECTION</h2>
+<p id="status">Anime collection ready...</p>
+
+<div id="animeList"></div>
+
+<div id="player">
+<h2 id="playingTitle">Anime Player</h2>
+<p id="episodeTitle">Select an episode</p>
+<div id="episodes"></div>
+<p id="notice"></p>
+
+<iframe id="video" allowfullscreen
+allow="autoplay; encrypted-media"></iframe>
+
+<br>
+<button onclick="closePlayer()">Close Player</button>
+</div>
+
+<footer>
+<h2>ANIME WORLD ❤️</h2>
+<p>Made for Anime Fans</p>
+</footer>
+
+<script>
+
+const animeNames=[
+"Naruto","One Piece","Dragon Ball","Dragon Ball Z",
+"Demon Slayer","Jujutsu Kaisen","Attack on Titan",
+"Death Note","Tokyo Revengers","My Hero Academia",
+"Black Clover","Bleach","Hunter x Hunter",
+"One Punch Man","Spy x Family","Blue Lock",
+"Haikyuu","Chainsaw Man","Solo Leveling","Dr. Stone",
+"Fairy Tail","Sword Art Online","Overlord",
+"Mob Psycho 100","Re:Zero","Classroom of the Elite",
+"Vinland Saga","Fullmetal Alchemist",
+"JoJo's Bizarre Adventure","Frieren"
+];
+
+const animeData=animeNames.map(name=>({
+ name:name,
+ title:name,
+ poster:"",
+ url:""
+}));
+
+const list=document.getElementById("animeList");
+const statusText=document.getElementById("status");
+
+function renderAnime(){
+
+ const search=document.getElementById("search").value.toLowerCase();
+
+ list.innerHTML="";
+
+ animeData
+ .filter(a=>a.title.toLowerCase().includes(search))
+ .forEach((anime,index)=>{
+
+  const card=document.createElement("div");
+  card.className="card";
+
+  const poster=document.createElement("div");
+  poster.className="poster";
+  poster.textContent="🎬";
+
+  if(anime.poster){
+   const img=document.createElement("img");
+   img.src=anime.poster;
+   img.alt=anime.title;
+   img.onerror=()=>img.remove();
+   poster.textContent="";
+   poster.appendChild(img);
+  }
+
+  const title=document.createElement("h3");
+  title.textContent=anime.title;
+
+  const select=document.createElement("select");
+
+  for(let i=1;i<=3;i++){
+   const option=document.createElement("option");
+   option.value=i;
+   option.textContent="Demo Season "+i;
+   select.appendChild(option);
+  }
+
+  const button=document.createElement("button");
+  button.textContent="WATCH EPISODES";
+
+  button.onclick=()=>{
+   openAnime(anime,select.value);
+  };
+
+  card.append(poster,title,select,button);
+  list.appendChild(card);
+
+ });
+}
+
+document.getElementById("search").addEventListener("input",renderAnime);
+
+async function loadPosters(){
+
+ statusText.textContent="Loading all 30 anime posters...";
+
+ const fields=animeNames.map((name,index)=>`
+  anime${index}: Page(page:1,perPage:1){
+   media(search:${JSON.stringify(name)},type:ANIME){
+    title{english romaji}
+    coverImage{extraLarge large}
+    siteUrl
+   }
+  }
+ `).join("\n");
+
+ const query=`query { ${fields} }`;
+
+ try{
+
+  const response=await fetch("https://graphql.anilist.co",{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "Accept":"application/json"
+   },
+   body:JSON.stringify({query})
+  });
+
+  if(!response.ok) throw new Error("API error");
+
+  const result=await response.json();
+
+  if(result.errors) throw new Error("Catalogue error");
+
+  animeData.forEach((anime,index)=>{
+
+   const found=result.data?.["anime"+index]?.media?.[0];
+
+   if(found){
+    anime.title=found.title.english || found.title.romaji || anime.name;
+    anime.poster=found.coverImage.extraLarge || found.coverImage.large || "";
+    anime.url=found.siteUrl || "";
+   }
+
+  });
+
+  statusText.textContent="Anime catalogue loaded!";
+
+  renderAnime();
+
+ }catch(error){
+
+  statusText.textContent=
+   "Posters load nahi hue. Internet connection check karke Refresh karo.";
+
+ }
+
+}
+
+function openAnime(anime,season){
+
+ const player=document.getElementById("player");
+ const episodes=document.getElementById("episodes");
+ const video=document.getElementById("video");
+
+ document.getElementById("playingTitle").textContent=
+ anime.title+" - Season "+season;
+
+ document.getElementById("notice").textContent=
+ "Demo episodes: these are not real anime episodes.";
+
+ episodes.innerHTML="";
+ video.src="";
+
+ for(let i=1;i<=12;i++){
+
+  const button=document.createElement("button");
+  button.textContent="Episode "+i;
+
+  button.onclick=()=>{
+
+   document.getElementById("episodeTitle").textContent=
+   "Demo Episode "+i;
+
+   document.getElementById("notice").textContent=
+   "Sample video only, not an actual anime episode.";
+
+   video.src="https://www.youtube-nocookie.com/embed/ScMzIvxBSi4";
+
+  };
+
+  episodes.appendChild(button);
+
+ }
+
+ player.style.display="block";
+ player.scrollIntoView({behavior:"smooth"});
+
+}
+
+function closePlayer(){
+
+ document.getElementById("video").src="";
+ document.getElementById("player").style.display="none";
+
+}
+
+renderAnime();
+loadPosters();
+
+</script>
+</body>
+</html>
